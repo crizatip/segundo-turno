@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bolsonaro x Lula em dados</title>
+<meta name="description" content="Comparativo dos governos Bolsonaro (2019–2022) e Lula (2023–2026) com dados oficiais: economia, social, meio ambiente, criminalidade, aprovação, corrupção e prioridades do eleitor.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --font-anthropic-sans:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-anthropic-serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --color-bg:#f7f7f5; --color-panel:#ffffff; --color-fg:#1d1f22; --color-fg-muted:#5f6670;
+  --color-border-line:#e1e3e6; --color-ok:#1f7a45; --color-warn:#9a6700; --color-bad:#c0392b;
+  --cds-chart-muted:#9aa1aa; --cds-chart-grid:#eceef0; --cds-chart-axis:#b9bec5; --cds-chart-reference:#7c838c;
+  --cds-surface-popover:#ffffff; --cds-border:#d7dade; --cds-shadow-popover:0 4px 16px rgba(20,24,30,.12);
+  --cds-text-secondary:#5f6670;
+  --cds-gap-xs:4px; --cds-gap-sm:8px; --cds-gap-md:16px; --cds-gap-lg:24px; --cds-gap-xl:32px;
+  --cds-pad-xs:4px; --cds-pad-sm:8px; --cds-pad-md:14px; --cds-pad-lg:20px; --cds-pad-xl:28px;
+  --cds-radius:10px;
+  --cds-font-size-caption:.8125rem; --cds-font-size-body:.9375rem; --cds-font-size-heading:1.0625rem; --cds-font-size-title:1.75rem;
+  --cds-font-weight-medium:600; --cds-dur-slow:.3s;
+  --serie-b:#2f6fd6; --serie-l:#d4792a;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-bg:#141618; --color-panel:#1c1f22; --color-fg:#e8eaed; --color-fg-muted:#a3aab3;
+    --color-border-line:#2e3337; --color-bad:#ef6b5b;
+    --cds-chart-muted:#6f7780; --cds-chart-grid:#272b2f; --cds-chart-axis:#4a5057; --cds-chart-reference:#8d949c;
+    --cds-surface-popover:#23272b; --cds-border:#3a4045; --cds-shadow-popover:0 4px 16px rgba(0,0,0,.45);
+    --cds-text-secondary:#a3aab3;
+    --serie-b:#6c9cf0; --serie-l:#f0a25e;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--color-bg);color:var(--color-fg);font-family:var(--font-anthropic-sans);font-size:var(--cds-font-size-body);line-height:1.5}
+#dash-root{padding-block:32px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:900px){#dash-root{padding-left:40px;padding-right:40px}}
+a{color:inherit}
+img{max-width:100%}
+[hidden]{display:none!important}
+.dash-skeleton{background:var(--cds-chart-grid);border-radius:6px;color:transparent!important}
+
+.bl-nav{position:sticky;top:0;z-index:5;background:var(--color-bg);border-bottom:1px solid var(--color-border-line);margin:0 0 24px;padding-block:10px}
+.bl-nav ul{list-style:none;margin:0 auto;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;max-width:1180px;font-size:var(--cds-font-size-caption)}
+.bl-nav a{text-decoration:none;color:var(--color-fg-muted)}
+.bl-nav a:hover,.bl-nav a:focus-visible{color:var(--color-fg);text-decoration:underline}
+.rp{max-width:1180px;margin:var(--cds-gap-xl) auto 0;display:flex;flex-direction:column;gap:var(--cds-gap-md)}
+.rp h2.rp-t{font-family:var(--font-anthropic-serif);font-weight:400;font-size:1.5rem;margin:0;text-wrap:balance}
+.rp .lead{color:var(--color-fg-muted);max-width:75ch;margin:0}
+.rp .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-sm);min-width:0}
+.rp h3{margin:0;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.rp p{margin:0;max-width:78ch}
+.rp ul,.rp ol{margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:4px;max-width:78ch}
+.rp .src{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.rp .src a,.rp p a{color:inherit;text-underline-offset:2px}
+.rp .case{border-top:1px solid var(--color-border-line);padding-top:var(--cds-pad-sm);display:flex;flex-direction:column;gap:4px}
+.rp .case:first-of-type{border-top:0;padding-top:0}
+.rp .case b{font-weight:600}
+.rp .tw{overflow-x:auto}
+.rp table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);min-width:620px}
+.rp th{text-align:left;color:var(--color-fg-muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--color-border-line)}
+.rp td{padding:8px;border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.rp .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,28rem),1fr));gap:var(--cds-gap-md)}
+.rp .tag{display:inline-block;font-size:var(--cds-font-size-caption);padding:1px 8px;border-radius:999px;border:1px solid currentColor;width:fit-content}
+.rp .warn{background:var(--color-panel);border-left:3px solid var(--cds-chart-reference);padding:var(--cds-pad-md) var(--cds-pad-lg);border-radius:0 var(--cds-radius) var(--cds-radius) 0}
+#ipc-chart{position:relative;min-height:260px}
+
+.site-foot{max-width:1180px;margin:32px auto 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+</style>
+</head>
+<body>
+<div id="dash-root">
+<nav class="bl-nav" aria-label="Seções"><ul>
+<li><a href="#indicadores">Indicadores</a></li>
+<li><a href="#criminalidade">Criminalidade</a></li>
+<li><a href="#aprovacao">Avaliação</a></li>
+<li><a href="#comparativo">Comparativo</a></li>
+<li><a href="#corrupcao">Corrupção</a></li>
+<li><a href="#candidatos">Lula x Flávio</a></li>
+<li><a href="#prioridades">Prioridades do eleitor</a></li>
+</ul></nav>
+<script>
+window.DASH_DATA = {"serie_anual": [{"ano": "2018", "governo": "Temer (base)", "pib": null, "ipca": null, "desemprego": null, "desmatamento": 7536, "divida": 75.3, "mvi": null, "status": "realizado"}, {"ano": "2019", "governo": "Bolsonaro", "pib": 1.2, "ipca": 4.31, "desemprego": 12.0, "desmatamento": 10129, "divida": 74.4, "mvi": null, "status": "realizado"}, {"ano": "2020", "governo": "Bolsonaro", "pib": -3.3, "ipca": 4.52, "desemprego": 13.8, "desmatamento": 10851, "divida": 86.9, "mvi": 50448, "status": "realizado"}, {"ano": "2021", "governo": "Bolsonaro", "pib": 4.8, "ipca": 10.06, "desemprego": 13.2, "desmatamento": 13038, "divida": 77.3, "mvi": 48288, "status": "realizado"}, {"ano": "2022", "governo": "Bolsonaro", "pib": 3.0, "ipca": 5.79, "desemprego": 9.3, "desmatamento": 11594, "divida": 71.7, "mvi": 47963, "status": "realizado"}, {"ano": "2023", "governo": "Lula", "pib": 3.2, "ipca": 4.62, "desemprego": 7.8, "desmatamento": 9064, "divida": 73.8, "mvi": 46441, "status": "realizado"}, {"ano": "2024", "governo": "Lula", "pib": 3.4, "ipca": 4.83, "desemprego": 6.6, "desmatamento": 6518, "divida": 76.3, "mvi": 44220, "status": "realizado"}, {"ano": "2025", "governo": "Lula", "pib": 2.3, "ipca": 4.26, "desemprego": 5.6, "desmatamento": 5731, "divida": 78.7, "mvi": 40775, "status": "realizado"}], "indicadores": [{"id": "pib", "nome": "Crescimento do PIB", "unidade": "% ao ano", "melhor": "maior", "fonte": "IBGE, Contas Nacionais Trimestrais (taxas anuais revisadas)", "nota": "2020 reflete a recessão da pandemia. O IBGE revisa os anos anteriores a cada divulgação.", "links": "IBGE – PIB 2025|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/45968-pib-cresce-2-3-em-2025-e-fecha-o-ano-em-r-12-7-trilhoes; IBGE – PIB 2024|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/42774-pib-cresce-3-4-em-2024-e-fecha-o-ano-em-r-11-7-trilhoes; Poder360 – PIB 2023 revisado|https://www.poder360.com.br/poder-economia/ibge-revisa-pib-de-2023-e-diz-que-brasil-cresceu-32/; Poder360 – PIB 2021 e 2022|https://www.poder360.com.br/poder-governo/lula-erra-e-diz-que-so-em-seu-governo-pib-cresceu-mais-de-3/"}, {"id": "ipca", "nome": "Inflação (IPCA)", "unidade": "% no ano", "melhor": "menor", "fonte": "IBGE, IPCA", "nota": "2021 teve a maior inflação desde 2015. Em 2025 a meta contínua foi descumprida por seis meses antes de a inflação voltar ao intervalo.", "links": "IBGE – IPCA 2021|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/32724-ipca-sobe-0-73-em-dezembro-e-fecha-2021-em-10-06; IBGE – IPCA 2023|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/38884-ipca-chega-a-0-56-em-dezembro-e-fecha-o-ano-em-4-62; IBGE – IPCA 2025|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/45612-ipca-vai-a-0-33-em-dezembro-e-fecha-o-ano-em-4-26"}, {"id": "desemprego", "nome": "Desemprego (média anual)", "unidade": "% da força de trabalho", "melhor": "menor", "fonte": "IBGE, PNAD Contínua", "nota": "2025 teve a menor taxa da série iniciada em 2012. O pico de 2020–2021 é efeito da pandemia.", "links": "IBGE – desocupação 2022|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/36336-pnad-continua-em-2022-taxa-media-anual-de-desocupacao-foi-de-9-3-enquanto-de-taxa-de-subutilizacao-foi-de-20-8; IBGE – desocupação 2025|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/45759-pnad-continua-em-2025-taxa-anual-de-desocupacao-foi-de-5-6-enquanto-taxa-de-subutilizacao-foi-14-5; IBGE – retrospectiva 2012–2025|https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Principais_destaques_PNAD_continua/2012_2025/PNAD_continua_retrospectiva_2012_2025.pdf"}, {"id": "desmatamento", "nome": "Desmatamento na Amazônia", "unidade": "km², taxa consolidada Prodes (ago–jul)", "melhor": "menor", "fonte": "INPE, Prodes (taxas consolidadas)", "nota": "O ano Prodes vai de agosto a julho: o dado de 2023 inclui cinco meses do governo Bolsonaro.", "links": "INPE – Prodes 2022 consolidado|https://www.gov.br/inpe/pt-br/assuntos/ultimas-noticias/a-taxa-consolidada-de-desmatamento-para-os-nove-estados-da-amazonia-legal-em-2022-foi-de-11-594-km2-1/NotaTecnica_consolidado_PRODES_2022.pdf; INPE – Prodes 2023 consolidado|https://www.gov.br/inpe/pt-br/assuntos/ultimas-noticias/taxa-consolidada-de-desmatamento-na-amazonia-em-2022-2023-e-de-9-064-km2; INPE – Prodes 2025 consolidado|https://www.gov.br/inpe/pt-br/assuntos/ultimas-noticias/sistema-do-inpe-aponta-5-731-km2-de-desmatamento-na-amazonia-em-2025"}, {"id": "divida", "nome": "Dívida bruta do governo geral", "unidade": "% do PIB, fim de ano", "melhor": "menor", "fonte": "Banco Central, Estatísticas Fiscais (série com o PIB revisado)", "nota": "Na apuração da época, 2022 fechou em 73,5%; a revisão do PIB reduziu a razão. A inflação alta de 2021–2022 também ajudou a reduzi-la. A IFI projeta 82,5% em 2026.", "links": "Banco Central – estatísticas fiscais dez/2025|https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202601_Texto_de_estatisticas_fiscais.pdf; Banco Central – estatísticas fiscais dez/2022|https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202301_Texto_de_estatisticas_fiscais.pdf; IFI/Senado – RAF jun/2026|https://www12.senado.leg.br/ifi/pdf/raf113_jun2026.pdf"}, {"id": "mvi", "nome": "Mortes violentas intencionais", "unidade": "vítimas por ano", "melhor": "menor", "fonte": "Fórum Brasileiro de Segurança Pública, Anuário (cada ano pela edição mais recente que o traz)", "nota": "Soma homicídios, latrocínios, lesões seguidas de morte e mortes por intervenção policial. 2019 fica fora porque não há total comparável publicado. Detalhes na seção Criminalidade.", "links": "Anuário 2022|https://forumseguranca.org.br/wp-content/uploads/2022/06/anuario-2022.pdf; Anuário 2023|https://forumseguranca.org.br/wp-content/uploads/2023/07/anuario-2023.pdf; Anuário 2024|https://publicacoes.forumseguranca.org.br/server/api/core/bitstreams/093a13cc-8116-4702-83ae-623e54842076/content; Anuário 2025|https://static.poder360.com.br/2025/07/anuario-2025-final-v04.pdf; Anuário 2026|https://forumseguranca.org.br/wp-content/uploads/2026/07/anuario-2026.pdf"}], "aprovacao": [{"id": "b12", "presidente": "Bolsonaro", "mes": 12, "referencia": "dez/2019", "otimo_bom": 30, "ruim_pessimo": null, "veiculo": "Congresso em Foco", "url": "https://congressoemfoco.com.br/governo/economia-estabiliza-rejeicao-ao-governo-bolsonaro-diz-datafolha"}, {"id": "b24", "presidente": "Bolsonaro", "mes": 24, "referencia": "dez/2020", "otimo_bom": 37, "ruim_pessimo": 32, "veiculo": "Correio Braziliense", "url": "https://www.correiobraziliense.com.br/politica/2020/12/4894698-pesquisa-datafolha-aponta-que-bolsonaro-mantem-aprovacao-em-37.html"}, {"id": "b36", "presidente": "Bolsonaro", "mes": 36, "referencia": "dez/2021", "otimo_bom": 22, "ruim_pessimo": 53, "veiculo": "Correio Braziliense", "url": "https://www.correiobraziliense.com.br/politica/2021/12/4971618-datafolha-bolsonaro-mantem-pior-avaliacao-de-seu-governo-com-53-de-reprovacao.html"}, {"id": "b41", "presidente": "Bolsonaro", "mes": 41, "referencia": "mai/2022", "otimo_bom": 25, "ruim_pessimo": 48, "veiculo": "Folhapress via BNews", "url": "https://www.bnews.com.br/noticias/eleicoes-2022/reprovacao-ao-governo-bolsonaro-vai-48-diz-datafolha.html"}, {"id": "b48", "presidente": "Bolsonaro", "mes": 48, "referencia": "dez/2022", "otimo_bom": 39, "ruim_pessimo": 37, "veiculo": "Correio Braziliense", "url": "https://www.correiobraziliense.com.br/politica/2022/12/5062532-datafolha-bolsonaro-termina-governo-com-maior-rejeicao-em-um-1-mandato.html"}, {"id": "l12", "presidente": "Lula", "mes": 12, "referencia": "dez/2023", "otimo_bom": 38, "ruim_pessimo": 30, "veiculo": "Congresso em Foco", "url": "https://www.congressoemfoco.com.br/noticia/7383/governo-lula-e-bom-para-35-e-ruim-para-33-segundo-datafolha"}, {"id": "l15", "presidente": "Lula", "mes": 15, "referencia": "mar/2024", "otimo_bom": 35, "ruim_pessimo": 33, "veiculo": "Congresso em Foco", "url": "https://www.congressoemfoco.com.br/noticia/7383/governo-lula-e-bom-para-35-e-ruim-para-33-segundo-datafolha"}, {"id": "l24", "presidente": "Lula", "mes": 24, "referencia": "dez/2024", "otimo_bom": 35, "ruim_pessimo": 34, "veiculo": "Poder360", "url": "https://www.poder360.com.br/poder-governo/datafolha-lula-tem-35-de-otimo-bom-e-34-de-ruim-pessimo/"}, {"id": "l26", "presidente": "Lula", "mes": 26, "referencia": "fev/2025", "otimo_bom": 24, "ruim_pessimo": 41, "veiculo": "Poder360", "url": "https://www.poder360.com.br/poder-governo/avaliacao-positiva-de-lula-cai-para-24-diz-datafolha/"}, {"id": "l28", "presidente": "Lula", "mes": 28, "referencia": "abr/2025", "otimo_bom": 29, "ruim_pessimo": 38, "veiculo": "Poder360", "url": "https://www.poder360.com.br/poder-pesquisas/avaliacao-negativa-de-lula-recua-de-41-para-38-diz-datafolha/"}, {"id": "l33", "presidente": "Lula", "mes": 33, "referencia": "set/2025", "otimo_bom": 33, "ruim_pessimo": 38, "veiculo": "Poder360", "url": "https://www.poder360.com.br/poder-pesquisas/datafolha-avaliacao-positiva-de-lula-sobe-para-33-maior-taxa-de-2025/"}, {"id": "l41", "presidente": "Lula", "mes": 41, "referencia": "mai/2026", "otimo_bom": 32, "ruim_pessimo": 38, "veiculo": "Poder360", "url": "https://www.poder360.com.br/poder-governo/38-avaliam-governo-lula-ruim-32-bom-datafolha/"}, {"id": "l45", "presidente": "Lula", "mes": 45, "referencia": "set/2026", "otimo_bom": 34, "ruim_pessimo": 42, "veiculo": "Poder360", "url": "https://www.poder360.com.br/poder-eleicoes-2026/lula-e-aprovado-por-48-e-desaprovado-por-50-diz-datafolha/"}], "comparativo": [{"tema": "Crescimento", "bolsonaro": "1,2% · −3,3% · 4,8% · 3,0% (pandemia em 2020)", "lula": "3,2% · 3,4% · 2,3%", "favorece": "Misto", "resumo": "Lula 3 tem média maior, mas Bolsonaro enfrentou a recessão da pandemia. Sem 2020, as médias ficam próximas. Os dois desaceleram no fim do período.", "fontes": "IBGE – PIB 2025|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/45968-pib-cresce-2-3-em-2025-e-fecha-o-ano-em-r-12-7-trilhoes; IBGE – PIB 2024|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/42774-pib-cresce-3-4-em-2024-e-fecha-o-ano-em-r-11-7-trilhoes; Poder360 – PIB 2023 revisado|https://www.poder360.com.br/poder-economia/ibge-revisa-pib-de-2023-e-diz-que-brasil-cresceu-32/; Poder360 – PIB 2021 e 2022|https://www.poder360.com.br/poder-governo/lula-erra-e-diz-que-so-em-seu-governo-pib-cresceu-mais-de-3/"}, {"tema": "Inflação e juros", "bolsonaro": "Pico de 10,06% em 2021; Selic a 13,75% no fim de 2022", "lula": "4,62% · 4,83% · 4,26%; meta estourada em 2025; Selic a 15%", "favorece": "Misto", "resumo": "A inflação ficou menor com Lula, à custa dos juros mais altos desde 2006, definidos por um Banco Central autônomo. O choque de 2021 teve forte peso externo, como pandemia e combustíveis.", "fontes": "IBGE – IPCA 2021|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/32724-ipca-sobe-0-73-em-dezembro-e-fecha-2021-em-10-06; IBGE – IPCA 2025|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/45612-ipca-vai-a-0-33-em-dezembro-e-fecha-o-ano-em-4-26; Poder360 – Selic a 15%|https://www.poder360.com.br/poder-economia/banco-central-mantem-selic-em-15-o-maior-nivel-desde-2006/; Bloomberg Línea – IPCA e Selic 2022|https://www.bloomberglinea.com.br/2023/01/10/ipca-tem-alta-de-579-em-2022-acima-da-meta-e-do-esperado-pelo-mercado/"}, {"tema": "Emprego e renda", "bolsonaro": "Média de 13,8% em 2020; 9,3% em 2022; renda real caiu", "lula": "Média de 5,6% em 2025, menor da série; 103 milhões ocupados", "favorece": "Lula", "resumo": "É o indicador mais favorável a Lula. Parte da melhora já vinha da recuperação pós-pandemia iniciada em 2022.", "fontes": "IBGE – desocupação 2022|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/36336-pnad-continua-em-2022-taxa-media-anual-de-desocupacao-foi-de-9-3-enquanto-de-taxa-de-subutilizacao-foi-de-20-8; IBGE – desocupação 2025|https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/2013-agencia-de-noticias/releases/45759-pnad-continua-em-2025-taxa-anual-de-desocupacao-foi-de-5-6-enquanto-taxa-de-subutilizacao-foi-14-5"}, {"tema": "Contas públicas", "bolsonaro": "Dívida de 75,3% para 71,7% do PIB (73,5% na apuração da época); superávit em 2022 com precatórios adiados", "lula": "Dívida em 78,7% do PIB (dez/2025); déficit do setor público de R$ 55 bi em 2025; IFI projeta 82,5% em 2026", "favorece": "Bolsonaro", "resumo": "A trajetória da dívida favorece Bolsonaro, mas o resultado contou com inflação alta e precatórios adiados. A IFI alerta que o próximo governo terá decisões fiscais difíceis.", "fontes": "Banco Central – estatísticas fiscais dez/2025|https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202601_Texto_de_estatisticas_fiscais.pdf; Poder360 – dívida 2022|https://www.poder360.com.br/governo/divida-publica-do-brasil-cai-para-735-do-pib-em-2022/; IFI/Senado – RAF jun/2026|https://www12.senado.leg.br/ifi/pdf/raf113_jun2026.pdf; Agência Senado – alerta da IFI|https://www12.senado.leg.br/noticias/materias/2026/06/25/ifi-proximo-presidente-da-republica-tera-de-enfrentar-decisoes-fiscais-dificeis"}, {"tema": "Reformas", "bolsonaro": "Previdência (2019), autonomia do Banco Central (2021), privatização da Eletrobras (2021)", "lula": "Reforma tributária do consumo (2023) e isenção de IR até R$ 5 mil (2025)", "favorece": "Misto", "resumo": "Os dois aprovaram reformas estruturais com forte protagonismo do Congresso. Nenhum aprovou a reforma administrativa.", "fontes": "Agência Senado – Previdência|https://www12.senado.leg.br/noticias/materias/2019/11/12/promulgada-emenda-constitucional-da-reforma-da-previdencia; Agência Senado – autonomia do BC|https://www12.senado.leg.br/noticias/materias/2021/02/25/lei-da-autonomia-do-banco-central-entra-em-vigor; Agência Senado – Eletrobras|https://www12.senado.leg.br/noticias/materias/2021/06/17/senado-aprova-mp-que-desestatiza-eletrobras-texto-volta-para-camara; Agência Senado – reforma tributária|https://www12.senado.leg.br/noticias/materias/2023/12/20/congresso-promulga-reforma-tributaria; Agência Senado – isenção do IR|https://www12.senado.leg.br/noticias/materias/2025/11/27/sancionada-isencao-do-imposto-de-renda-para-quem-ganha-ate-r-5-mil-por-mes"}, {"tema": "Pobreza e fome", "bolsonaro": "Extrema pobreza chegou a 9,0% em 2021, após a redução do auxílio emergencial; Brasil volta ao Mapa da Fome", "lula": "Extrema pobreza de 3,5% em 2024, menor da série; Gini de 0,504; saída do Mapa da Fome em 2025", "favorece": "Lula", "resumo": "Os indicadores sociais melhoraram com Lula, ajudados pelo mercado de trabalho aquecido. Com Bolsonaro, a pobreza caiu em 2020 com o auxílio emergencial e subiu em 2021.", "fontes": "IBGE – pobreza 2023 e 2024|https://agenciadenoticias.ibge.gov.br/agencia-noticias/2012-agencia-de-noticias/noticias/45344-8-6-milhoes-de-pessoas-sairam-da-pobreza-entre-2023-e-2024; FAO – Brasil sai do Mapa da Fome|https://www.fao.org/brasil/noticias/detail-events/en/c/1741586/; ONU Brasil – artigo sobre o Mapa da Fome|https://brasil.un.org/pt-br/299851-artigo-brasil-voltou-sair-do-mapa-da-fome"}, {"tema": "Meio ambiente", "bolsonaro": "Desmatamento de 13.038 km² em 2021 e 11.594 km² em 2022, patamares mais altos desde 2009", "lula": "9.064 km² (2023), 6.518 km² (2024) e 5.731 km² (2025)", "favorece": "Lula", "resumo": "Diferença clara nos dados consolidados do INPE. A alta já vinha desde 2013, e o ano Prodes de 2023 inclui cinco meses do governo anterior.", "fontes": "INPE – Prodes 2022|https://www.gov.br/inpe/pt-br/assuntos/ultimas-noticias/a-taxa-consolidada-de-desmatamento-para-os-nove-estados-da-amazonia-legal-em-2022-foi-de-11-594-km2-1/NotaTecnica_consolidado_PRODES_2022.pdf; INPE – Prodes 2023|https://www.gov.br/inpe/pt-br/assuntos/ultimas-noticias/taxa-consolidada-de-desmatamento-na-amazonia-em-2022-2023-e-de-9-064-km2; INPE – Prodes 2025|https://www.gov.br/inpe/pt-br/assuntos/ultimas-noticias/sistema-do-inpe-aponta-5-731-km2-de-desmatamento-na-amazonia-em-2025"}, {"tema": "Saúde e pandemia", "bolsonaro": "CPI da Pandemia aprovou relatório com 80 pedidos de indiciamento, incluindo o do presidente", "lula": "Sem crise sanitária comparável no período", "favorece": "Sem comparação direta", "resumo": "A pandemia atingiu só o mandato de Bolsonaro, o que impede comparar os dois neste ponto e pesa nos demais indicadores.", "fontes": "Agência Senado – fim da CPI|https://www12.senado.leg.br/noticias/materias/2021/10/26/apos-seis-meses-cpi-da-pandemia-e-encerrada-com-80-pedidos-de-indiciamento; Agência Senado – relatório à PGR e ao STF|https://www12.senado.leg.br/noticias/materias/2021/10/27/senadores-levam-relatorio-final-da-cpi-da-pandemia-para-pgr-e-stf"}, {"tema": "Segurança", "bolsonaro": "Mortes violentas: 50.448 em 2020 e 47.963 em 2022; registros de CACs subiram 476,6% de 2018 a 2022", "lula": "Mortes violentas: 46.441 (2023), 44.220 (2024) e 40.775 (2025); mortes por intervenção policial e feminicídios subiram em 2025", "favorece": "Lula", "resumo": "A queda das mortes violentas continuou e se acelerou com Lula, mas feminicídios e mortes pela polícia subiram em 2025. O FBSP atribui a tendência a facções, demografia e políticas estaduais, e estima que a expansão das armas freou uma queda maior.", "fontes": "FBSP – Anuário 2024|https://publicacoes.forumseguranca.org.br/server/api/core/bitstreams/093a13cc-8116-4702-83ae-623e54842076/content; FBSP – Anuário 2026|https://forumseguranca.org.br/wp-content/uploads/2026/07/anuario-2026.pdf; FBSP – armas de fogo e homicídios|https://forumseguranca.org.br/wp-content/uploads/2022/09/informe-armas-fogo-homicidios-no-brasil.pdf; Estado de Minas – Anuário 2026|https://www.em.com.br/nacional/2026/07/7466523-mortes-violentas-caem-82-no-pais-em-2025-feminicidios-aumentam-4.html"}, {"tema": "Instituições e escândalos", "bolsonaro": "Condenado pelo STF a 27 anos e 3 meses por tentativa de golpe; pediu revisão criminal em 2026", "lula": "Fraude no INSS derrubou o ministro da Previdência; a CPMI terminou sem relatório aprovado; condenações da Lava Jato anuladas pelo STF em 2021", "favorece": "Sem comparação direta", "resumo": "Casos de natureza diferente. A fraude no INSS atravessou os dois governos, e a CPMI rejeitou o relatório final por 19 votos a 12.", "fontes": "STF – penas da trama golpista|https://noticias.stf.jus.br/postsnoticias/stf-fixa-penas-de-16-a-27-anos-para-condenados-por-tentativa-de-golpe-de-estado/; STF – revisão criminal|https://noticias.stf.jus.br/postsnoticias/ex-presidente-bolsonaro-apresenta-revisao-criminal-contra-condenacao-por-tentativa-de-golpe-de-estado/; Agência Senado – fim da CPMI do INSS|https://www12.senado.leg.br/noticias/audios/2026/03/relatorio-da-cpmi-do-inss-e-rejeitado-por-19-votos-a-12; STF – anulação das condenações de Lula|https://noticias.stf.jus.br/postsnoticias/stf-confirma-anulacao-de-condenacoes-do-ex-presidente-lula-na-lava-jato/"}, {"tema": "Aprovação", "bolsonaro": "Fim do mandato: 39% ótimo/bom, 37% ruim/péssimo", "lula": "Set/2026: 34% ótimo/bom, 42% ruim/péssimo; mínima de 24% em fev/2025", "favorece": "Bolsonaro", "resumo": "No fim do mandato, Bolsonaro estava melhor avaliado que Lula está hoje. Os dois tiveram o pior momento no terceiro ano.", "fontes": "Correio Braziliense – Datafolha dez/2022|https://www.correiobraziliense.com.br/politica/2022/12/5062532-datafolha-bolsonaro-termina-governo-com-maior-rejeicao-em-um-1-mandato.html; Poder360 – Datafolha set/2026|https://www.poder360.com.br/poder-eleicoes-2026/lula-e-aprovado-por-48-e-desaprovado-por-50-diz-datafolha/; Poder360 – Datafolha fev/2025|https://www.poder360.com.br/poder-governo/avaliacao-positiva-de-lula-cai-para-24-diz-datafolha/"}, {"tema": "Eleição de 2026", "bolsonaro": "Inelegível e preso; o PL concorre com Flávio Bolsonaro: 47,03% no 1º turno", "lula": "Candidato à reeleição: 45,16% no 1º turno", "favorece": "Em disputa", "resumo": "Segundo turno em 25 de outubro. O Datafolha de 15/10 mostra 51% a 49% para Flávio, empate técnico.", "fontes": "Poder360 – resultado do 1º turno|https://www.poder360.com.br/poder-eleicoes-2026/bolsonarismo-vira-a-diferenca-sobre-lula-em-relacao-a-2022/; Poder360 – Datafolha 2º turno|https://www.poder360.com.br/poder-eleicoes-2026/datafolha-confirma-poderdata-aya-e-da-flavio-com-51-e-lula-com-49/; STF – prisão domiciliar de Bolsonaro|https://noticias.stf.jus.br/postsnoticias/stf-mantem-prisao-domiciliar-de-jair-bolsonaro/"}], "criminalidade": [{"ano": "2019", "governo": "Bolsonaro", "mvi": null, "homicidios": 39700, "latrocinios": 1586, "lesao_morte": 758, "intervencao_policial": 6351, "policiais_mortos": null, "feminicidios": null, "fonte": "Anuário 2021 (FBSP)", "url": "https://forumseguranca.org.br/wp-content/uploads/2021/07/1-evolucao-das-mortes-violentas-intencionais-no-brasil.pdf"}, {"ano": "2020", "governo": "Bolsonaro", "mvi": 50448, "homicidios": 42472, "latrocinios": 1447, "lesao_morte": 673, "intervencao_policial": 6413, "policiais_mortos": 222, "feminicidios": 1350, "fonte": "Anuário 2022 (FBSP)", "url": "https://forumseguranca.org.br/wp-content/uploads/2022/06/anuario-2022.pdf"}, {"ano": "2021", "governo": "Bolsonaro", "mvi": 48288, "homicidios": 40240, "latrocinios": 1452, "lesao_morte": 517, "intervencao_policial": 6493, "policiais_mortos": 145, "feminicidios": 1341, "fonte": "Anuário 2023 (FBSP)", "url": "https://forumseguranca.org.br/wp-content/uploads/2023/07/anuario-2023.pdf"}, {"ano": "2022", "governo": "Bolsonaro", "mvi": 47963, "homicidios": 39881, "latrocinios": 1243, "lesao_morte": 619, "intervencao_policial": 6455, "policiais_mortos": 155, "feminicidios": 1437, "fonte": "Anuário 2024 (FBSP)", "url": "https://publicacoes.forumseguranca.org.br/server/api/core/bitstreams/093a13cc-8116-4702-83ae-623e54842076/content"}, {"ano": "2023", "governo": "Lula", "mvi": 46441, "homicidios": 38653, "latrocinios": 1002, "lesao_morte": 628, "intervencao_policial": 6413, "policiais_mortos": 178, "feminicidios": 1467, "fonte": "Anuário 2025 (FBSP)", "url": "https://static.poder360.com.br/2025/07/anuario-2025-final-v04.pdf"}, {"ano": "2024", "governo": "Lula", "mvi": 44220, "homicidios": 36440, "latrocinios": 969, "lesao_morte": 774, "intervencao_policial": 6237, "policiais_mortos": 144, "feminicidios": 1492, "fonte": "Anuário 2026 (FBSP)", "url": "https://forumseguranca.org.br/wp-content/uploads/2026/07/anuario-2026.pdf"}, {"ano": "2025", "governo": "Lula", "mvi": 40775, "homicidios": 32914, "latrocinios": 807, "lesao_morte": 659, "intervencao_policial": 6602, "policiais_mortos": 139, "feminicidios": 1571, "fonte": "Anuário 2026 (FBSP)", "url": "https://forumseguranca.org.br/wp-content/uploads/2026/07/anuario-2026.pdf"}], "crime_meta": [{"id": "mvi", "nome": "Mortes violentas intencionais", "nota": "Soma de homicídios, latrocínios, lesões seguidas de morte e mortes por intervenção policial."}, {"id": "homicidios", "nome": "Homicídios dolosos", "nota": "Inclui feminicídios. Maior parte das mortes violentas."}, {"id": "latrocinios", "nome": "Latrocínios", "nota": "Roubos seguidos de morte."}, {"id": "intervencao_policial", "nome": "Mortes por intervenção policial", "nota": "Pessoas mortas por policiais em serviço e fora dele. Subiu em 2025."}, {"id": "feminicidios", "nome": "Feminicídios", "nota": "Mulheres mortas por razão de gênero. Recorde em 2025; parte da alta vem de melhor registro."}, {"id": "policiais_mortos", "nome": "Policiais mortos", "nota": "Policiais civis e militares vítimas de crimes violentos letais."}, {"id": "lesao_morte", "nome": "Lesões corporais seguidas de morte", "nota": "Agressões que terminam em morte sem intenção de matar."}]};
+(function(){
+  const calcs = {}, listeners = [];
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  window.dash = {
+    colors: ['var(--serie-b)', 'var(--serie-l)', '#2a9d8f', '#8e5cc4', '#c2408f', '#6b8e23', '#b8860b', '#4f6d7a'],
+    data(id){
+      const d = window.DASH_DATA[id];
+      if (d) return { status: 'ok', data: d, columns: d.length ? Object.keys(d[0]) : [], meta: [] };
+      if (calcs[id]) return { status: 'ok', data: calcs[id], meta: [] };
+      return { status: 'missing', data: [], meta: [] };
+    },
+    calc(id, spec){
+      try { calcs[id] = spec.fn(...spec.inputs.map((i) => this.data(i).data)); }
+      catch (e) { console.error('calc', id, e); calcs[id] = []; }
+    },
+    onData(fn){ listeners.push(fn); try { fn(); } catch (e) { console.error(e); } },
+    params(){ return {}; }, setParams(){}, resetParams(){}, setLink(){}, refresh(){},
+  };
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => listeners.forEach((f) => { try { f(); } catch (e) { console.error(e); } }), 150); });
+  if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => listeners.forEach((f) => f()));
+})();
+</script>
+<style>
+.bl{display:flex;flex-direction:column;gap:var(--cds-gap-xl);font-family:var(--font-anthropic-sans);max-width:1180px;margin-inline:auto}
+.bl-head{display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+.bl-head h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;text-wrap:balance}
+.bl-head p{margin:0;color:var(--color-fg-muted);max-width:72ch;font-size:var(--cds-font-size-body)}
+.bl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,30rem),1fr));gap:var(--cds-gap-md)}
+.bl-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-md);min-width:0}
+.bl-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
+.bl-sub{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin:0}
+.bl-row{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm);align-items:center;justify-content:space-between}
+.bl-tabs{display:flex;flex-wrap:wrap;gap:var(--cds-gap-xs)}
+.bl-tab{font:inherit;font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-sm);border:1px solid var(--color-border-line);border-radius:999px;background:transparent;color:var(--color-fg);cursor:pointer}
+.bl-tab[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg)}
+.bl-tab:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
+.bl-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.bl-legend span{display:inline-flex;align-items:center;gap:6px}
+.bl-sw{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.bl-sw.proj{background:transparent!important;border:1.5px dashed var(--color-fg-muted)}
+.bl-avgs{display:flex;flex-wrap:wrap;gap:var(--cds-gap-xl)}
+.bl-avg{display:flex;flex-direction:column;gap:2px;min-width:8rem}
+.bl-avg .k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);display:flex;align-items:center;gap:6px}
+.bl-avg .v{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums;min-height:1.2em}
+.bl-chart{position:relative;min-height:300px}
+.bl-chart svg{display:block}
+.bl-chart text{font-family:var(--font-anthropic-sans)}
+.bl-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap;z-index:2}
+.bl-tip .t{color:var(--cds-text-secondary)}
+.bl-tip .r{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.bl-src{display:flex;flex-direction:column;gap:4px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);border-top:1px solid var(--color-border-line);padding-top:var(--cds-pad-sm)}
+.bl-src .lab{color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.bl-fail{display:flex;align-items:center;justify-content:center;gap:8px;min-height:inherit;height:100%;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.bl-fail i{width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad);display:inline-block}
+.bl-twrap{container-type:inline-size;min-width:0}
+.bl-table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption)}
+.bl-table th{text-align:left;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);vertical-align:bottom}
+.bl-table td{padding:var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);vertical-align:top;line-height:1.45}
+.bl-table td.tema{font-weight:var(--cds-font-weight-medium);font-size:var(--cds-font-size-body);white-space:nowrap}
+.bl-table td.res{color:var(--color-fg);max-width:34ch}
+.bl-table a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--color-border-line)}
+.bl-table a:hover{text-decoration-color:currentColor}
+.bl-pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--color-border-line);white-space:nowrap}
+.bl-table td[data-label]::before{content:attr(data-label);display:none;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin-bottom:2px}
+@container (max-width: 760px){
+  .bl-table thead{display:none}
+  .bl-table, .bl-table tbody, .bl-table tr, .bl-table td{display:block;width:100%}
+  .bl-table tr{border-bottom:1px solid var(--color-border-line);padding-block:var(--cds-pad-sm)}
+  .bl-table td{border:0;padding:4px 0;max-width:none}
+  .bl-table td.res{max-width:none}
+  .bl-table td[data-label]::before{display:block}
+}
+.bl-foot{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);max-width:80ch;margin:0;display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+.bl-foot p{margin:0}
+.bl-foot .lab{color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.bl-src a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--color-border-line)}
+.bl-src a:hover{text-decoration-color:currentColor}
+.bl-mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--cds-gap-md)}
+.bl-mini{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);display:flex;flex-direction:column;gap:var(--cds-gap-xs);min-width:0}
+.bl-mini h3{margin:0;font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium)}
+.bl-mini .m{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:4px 12px}
+.bl-mini .m span{display:inline-flex;align-items:center;gap:5px}
+.bl-mini .chart{position:relative;min-height:150px}
+.bl-mini .n{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+[data-dash-source-state=empty]{color:transparent}
+</style>
+
+<div class="bl">
+  <header class="bl-head" id="topo">
+    <h1>Bolsonaro x Lula em dados</h1>
+    <p>Os números favorecem Lula em emprego, desmatamento, segurança e indicadores sociais, e Bolsonaro na trajetória da dívida e na avaliação ao fim do mandato. Crescimento e inflação dependem de quanto peso se dá à pandemia, que atingiu só o governo Bolsonaro.</p>
+  </header>
+
+  <section class="bl-card" id="indicadores">
+    <div class="bl-row">
+      <h2 id="serie-titulo">Indicadores ano a ano</h2>
+      <div class="bl-tabs" id="serie-tabs" role="group" aria-label="Indicador" data-source="indicadores"></div>
+    </div>
+    <div class="bl-avgs">
+      <div class="bl-avg"><span class="k"><i class="bl-sw" id="sw-b"></i>Média anual · Bolsonaro (2019–2022)</span><span class="v dash-skeleton" id="avg-b" data-source="medias" data-where="governo=Bolsonaro">—</span></div>
+      <div class="bl-avg"><span class="k"><i class="bl-sw" id="sw-l"></i>Média anual · Lula (2023–2025)</span><span class="v dash-skeleton" id="avg-l" data-source="medias" data-where="governo=Lula">—</span></div>
+    </div>
+    <div class="bl-legend" id="serie-legenda">
+      <span><i class="bl-sw" id="lg-b"></i>Bolsonaro</span>
+      <span><i class="bl-sw" id="lg-l"></i>Lula</span>
+      <span><i class="bl-sw" style="background:var(--cds-chart-muted)"></i>2018, base de comparação</span>
+    </div>
+    <div class="bl-chart dash-skeleton" id="serie-chart" data-source="serie_anual"></div>
+    <div class="bl-src">
+      <div><span class="lab">Fonte: </span><span id="serie-fonte" data-source="indicadores" data-field="fonte">—</span></div>
+      <div><span class="lab">Contexto: </span><span id="serie-nota" data-source="indicadores" data-field="nota">—</span></div>
+      <div><span class="lab">Links: </span><span id="serie-links" data-source="indicador_links" data-field="links">—</span></div>
+    </div>
+  </section>
+
+  <section class="bl-card" id="criminalidade">
+    <div class="bl-row">
+      <h2>Criminalidade ano a ano</h2>
+    </div>
+    <p class="bl-sub">Vítimas por ano no Brasil, segundo o Anuário Brasileiro de Segurança Pública. Cada gráfico tem escala própria; a média anual de cada governo está no topo.</p>
+    <div class="bl-legend">
+      <span><i class="bl-sw" id="cr-lg-b"></i>Bolsonaro (2019–2022)</span>
+      <span><i class="bl-sw" id="cr-lg-l"></i>Lula (2023–2025)</span>
+    </div>
+    <div class="bl-mgrid" id="crime-grid" data-source="criminalidade crime_meta"></div>
+    <div class="bl-src">
+      <div><span class="lab">Fonte: </span>Fórum Brasileiro de Segurança Pública. Cada ano vem da edição mais recente do Anuário que o traz, porque o FBSP revisa os dados anteriores; 2019 não tem total de mortes violentas nem de feminicídios comparável.</div>
+      <div><span class="lab">Edições usadas: </span><span id="crime-links" data-source="criminalidade"></span></div>
+    </div>
+  </section>
+
+  <section class="bl-card" id="aprovacao">
+    <div class="bl-row">
+      <h2>Avaliação no mesmo ponto do mandato</h2>
+      <div class="bl-tabs" id="ap-tabs" role="group" aria-label="Medida">
+        <button class="bl-tab" type="button" data-m="otimo_bom" aria-pressed="true">Ótimo ou bom</button>
+        <button class="bl-tab" type="button" data-m="ruim_pessimo" aria-pressed="false">Ruim ou péssimo</button>
+      </div>
+    </div>
+    <p class="bl-sub">Pesquisas Datafolha, em % dos entrevistados, por mês desde a posse. Lula ainda está no 3º mandato.</p>
+    <div class="bl-chart dash-skeleton" id="ap-chart" data-source="aprovacao"></div>
+    <div class="bl-src">
+      <div><span class="lab">Fonte: </span>Datafolha. O mês 12 de Bolsonaro só tem a avaliação positiva publicada.</div>
+      <div class="bl-aplinks"><span class="lab">Reportagens por pesquisa: </span><span id="ap-links" data-source="aprovacao"></span></div>
+    </div>
+  </section>
+
+  <section class="bl-card" id="comparativo">
+    <div class="bl-row">
+      <h2>Comparativo ponto a ponto</h2>
+      <div class="bl-tabs" id="cmp-filtro" role="group" aria-label="Filtrar por quem os números favorecem"></div>
+    </div>
+    <p class="bl-sub">"Números favorecem" diz qual período tem o indicador melhor, não quem é responsável por ele. Leia o resumo para o contexto.</p>
+    <div class="bl-twrap">
+      <table class="bl-table" id="cmp-tabela" data-source="comparativo" data-row-key="tema">
+        <thead><tr>
+          <th data-field="tema">Ponto</th>
+          <th data-field="bolsonaro">Bolsonaro (2019–2022)</th>
+          <th data-field="lula">Lula (2023–2026)</th>
+          <th data-field="favorece">Números favorecem</th>
+          <th data-field="resumo">Resumo</th>
+          <th data-source="fontes_links" data-field="fontes">Fontes</th>
+        </tr></thead>
+        <tbody id="cmp-corpo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="bl-foot" id="criterio">
+    <p><span class="lab">Critério das fontes.</span> Só entram órgãos oficiais e independentes (IBGE, INPE, Banco Central, IFI do Senado, STF, Agência Senado, FAO/ONU, Fórum Brasileiro de Segurança Pública, Datafolha) e veículos sem histórico de apoio a Lula ou a Bolsonaro (Poder360, Correio Braziliense, Congresso em Foco, Estado de Minas, Bloomberg Línea). Ficaram de fora sites de partidos e sindicatos e veículos alinhados a um dos lados, como CartaCapital, Revista Oeste, Jovem Pan, Gazeta do Povo, CUT, Vermelho e SBT.</p>
+    <p>Valores anuais de 2019 (PIB, IPCA, desemprego, desmatamento, dívida), IPCA de 2024, desemprego de 2020 e 2023 e dívida de 2019 a 2021 e de 2023 vêm das séries oficiais desses órgãos, sem reportagem própria listada. O ano do Prodes vai de agosto a julho, então 2023 mistura os dois governos.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const nf1 = new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2});
+  const nf0 = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
+  window.blFmt = function(id, v){
+    if (v === null || v === undefined || v === '' || isNaN(+v)) return '—';
+    v = +v;
+    if (id === 'desmatamento') return nf0.format(v) + ' km²';
+    if (id === 'mvi') return nf0.format(v);
+    if (id === 'pib') return (v > 0 ? '+' : '') + nf1.format(v) + '%';
+    return nf1.format(v) + '%';
+  };
+  window.blFail = function(el){
+    const d = document.createElement('div'); d.className = 'bl-fail';
+    const i = document.createElement('i'); const s = document.createElement('span'); s.textContent = 'Falha ao carregar';
+    d.append(i, s); el.replaceChildren(d);
+  };
+  window.blGovColor = function(g){
+    if (g === 'Bolsonaro') return dash.colors[0];
+    if (g === 'Lula') return dash.colors[1];
+    return 'var(--cds-chart-muted)';
+  };
+  window.blMeasure = function(svg, strings){
+    const t = svg.append('text').attr('font-size', 12).attr('visibility','hidden');
+    let w = 0;
+    for (const s of strings){ t.text(s); w = Math.max(w, t.node().getComputedTextLength()); }
+    t.remove();
+    return w;
+  };
+  window.blTip = function(box, tip, ev, html){
+    tip.replaceChildren(...html);
+    tip.hidden = false;
+    const r = box.getBoundingClientRect();
+    let x = ev.clientX - r.left + 12, y = ev.clientY - r.top - 10;
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    if (x + tw > box.clientWidth) x = ev.clientX - r.left - tw - 12;
+    if (x < 0) x = 0;
+    if (y + th > box.clientHeight) y = box.clientHeight - th;
+    if (y < 0) y = 0;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  };
+  window.blLine = function(text, color){
+    const d = document.createElement('div'); d.className = 'r';
+    if (color){ const s = document.createElement('i'); s.className = 'bl-sw'; s.style.background = color; d.append(s); }
+    const t = document.createElement('span'); t.textContent = text; d.append(t);
+    return d;
+  };
+  window.blTitle = function(text){ const d = document.createElement('div'); d.className = 't'; d.textContent = text; return d; };
+})();
+</script>
+
+<script>
+dash.calc('medias', {
+  inputs: ['serie_anual'],
+  title: 'Médias anuais por governo',
+  description: 'Média simples dos valores anuais de cada indicador nos anos de cada governo (2025 inclui projeções).',
+  fn: (serie_anual) => ['Bolsonaro', 'Lula'].map((g) => {
+    const anos = serie_anual.filter((r) => r.governo === g);
+    const out = { governo: g };
+    for (const k of ['pib', 'ipca', 'desemprego', 'desmatamento', 'divida', 'mvi']) {
+      const v = anos.map((r) => r[k]).filter((x) => x !== null && x !== '' && x !== undefined).map(Number);
+      const m = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+      out[k] = m === null ? null : (k === 'desmatamento' || k === 'mvi' ? Math.round(m) : Math.round(m * 10) / 10);
+    }
+    return out;
+  }),
+});
+
+dash.calc('indicador_links', {
+  inputs: ['indicadores'],
+  title: 'Links das fontes por indicador',
+  description: 'Os nomes das reportagens e publicações oficiais de cada indicador, sem os endereços.',
+  fn: (indicadores) => indicadores.map((r) => ({
+    id: r.id,
+    links: String(r.links || '').split(';').map((s) => s.split('|')[0].trim()).filter(Boolean).join(' · '),
+  })),
+});
+
+window.blLinks = function(el, raw){
+  el.replaceChildren();
+  String(raw || '').split(';').map((s) => s.trim()).filter(Boolean).forEach((s, i) => {
+    const parts = s.split('|'); const nome = (parts[0] || '').trim(); const url = (parts.slice(1).join('|') || '').trim();
+    if (i > 0) el.append(document.createTextNode(' · '));
+    if (/^https:\/\//.test(url)) {
+      const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = nome; el.append(a);
+    } else el.append(document.createTextNode(nome));
+  });
+};
+
+(function(){
+  let cur = 'pib';
+  const tabs = document.getElementById('serie-tabs');
+  const box = document.getElementById('serie-chart');
+  const tip = document.createElement('div'); tip.className = 'bl-tip'; tip.hidden = true;
+
+  tabs.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-id]');
+    if (!b) return;
+    cur = b.dataset.id;
+    draw();
+  });
+
+  function drawTabs(m){
+    if (m.status !== 'ok') { tabs.replaceChildren(); return; }
+    const have = [...tabs.querySelectorAll('button')].map((b) => b.dataset.id).join();
+    const want = m.data.map((r) => r.id).join();
+    if (have !== want) {
+      tabs.replaceChildren(...m.data.map((r) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'bl-tab'; b.dataset.id = r.id; b.textContent = r.nome;
+        return b;
+      }));
+    }
+    tabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === cur)));
+  }
+
+  function drawMeta(m){
+    const f = document.getElementById('serie-fonte'), n = document.getElementById('serie-nota');
+    f.setAttribute('data-where', 'id=' + cur); n.setAttribute('data-where', 'id=' + cur);
+    const r = m.status === 'ok' ? m.data.find((x) => x.id === cur) : null;
+    f.textContent = r ? r.fonte : '—';
+    n.textContent = r ? r.nota : '—';
+    const l = document.getElementById('serie-links');
+    l.setAttribute('data-where', 'id=' + cur);
+    if (r && dash.data('indicador_links').status === 'ok') blLinks(l, r.links); else l.textContent = '—';
+    const t = document.getElementById('serie-titulo');
+    t.textContent = r ? r.nome + ' (' + r.unidade + ')' : 'Indicadores ano a ano';
+  }
+
+  function drawAvgs(){
+    const md = dash.data('medias');
+    for (const [g, id] of [['Bolsonaro', 'avg-b'], ['Lula', 'avg-l']]) {
+      const el = document.getElementById(id);
+      el.setAttribute('data-field', cur);
+      if (md.status !== 'ok') { el.textContent = '—'; el.classList.toggle('dash-skeleton', md.status === 'loading'); continue; }
+      el.classList.remove('dash-skeleton');
+      const r = md.data.find((x) => x.governo === g);
+      el.textContent = r ? blFmt(cur, r[cur]) : '—';
+    }
+  }
+
+  function draw(){
+    document.getElementById('sw-b').style.background = dash.colors[0];
+    document.getElementById('sw-l').style.background = dash.colors[1];
+    document.getElementById('lg-b').style.background = dash.colors[0];
+    document.getElementById('lg-l').style.background = dash.colors[1];
+    const s = dash.data('serie_anual'), m = dash.data('indicadores');
+    drawTabs(m); drawMeta(m); drawAvgs();
+    if (s.status !== 'ok' || m.status !== 'ok') {
+      box.replaceChildren();
+      const loading = s.status === 'loading' || m.status === 'loading';
+      box.classList.toggle('dash-skeleton', loading);
+      if (!loading) blFail(box);
+      return;
+    }
+    box.classList.remove('dash-skeleton');
+    const meta = m.data.find((x) => x.id === cur);
+    const rows = s.data.map((r) => ({
+      ano: String(r.ano), gov: r.governo,
+      v: (r[cur] === null || r[cur] === '' || r[cur] === undefined) ? null : +r[cur],
+      parcial: String(r.status || '').startsWith('parcial'),
+    })).filter((r) => r.v !== null && !isNaN(r.v));
+
+    box.replaceChildren(tip); tip.hidden = true;
+    const W = Math.max(box.clientWidth, 280), H = 300, mt = 22, mb = 28, mr = 8;
+    const svg = d3.select(box).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', meta ? meta.nome : 'Indicador');
+    const lo = Math.min(0, d3.min(rows, (d) => d.v)), hi = Math.max(0, d3.max(rows, (d) => d.v));
+    const y0 = d3.scaleLinear().domain([lo, hi]).nice(5);
+    const ticks = y0.ticks(5);
+    const tickTxt = ticks.map((t) => (cur === 'desmatamento' || cur === 'mvi') ? nfK(t) : String(t).replace('.', ','));
+    function nfK(t){ return new Intl.NumberFormat('pt-BR').format(t); }
+    const ml = Math.ceil(blMeasure(svg, tickTxt)) + 10;
+    const y = y0.range([H - mb, mt]);
+    const x = d3.scaleBand().domain(rows.map((d) => d.ano)).range([ml, W - mr]).padding(0.3);
+
+    const grid = svg.append('g');
+    ticks.forEach((t, i) => {
+      grid.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', y(t)).attr('y2', y(t))
+        .attr('stroke', t === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)').attr('stroke-width', 1);
+      grid.append('text').attr('x', ml - 8).attr('y', y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
+        .attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(tickTxt[i]);
+    });
+    svg.append('g').selectAll('text').data(rows).join('text')
+      .attr('x', (d) => x(d.ano) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle')
+      .attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text((d) => d.ano);
+
+    const bw = Math.min(x.bandwidth(), 56), off = (x.bandwidth() - bw) / 2;
+    const bars = svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (d) => x(d.ano) + off).attr('width', bw)
+      .attr('y', (d) => Math.min(y(d.v), y(0))).attr('height', (d) => Math.max(1, Math.abs(y(d.v) - y(0))))
+      .attr('rx', 4)
+      .attr('fill', (d) => blGovColor(d.gov)).attr('fill-opacity', (d) => d.parcial ? 0.35 : 1)
+      .attr('stroke', (d) => d.parcial ? blGovColor(d.gov) : 'none').attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', (d) => d.parcial ? '4 3' : null)
+      .style('cursor', 'default');
+
+    if (bw >= 30) {
+      svg.append('g').selectAll('text').data(rows).join('text')
+        .attr('x', (d) => x(d.ano) + x.bandwidth() / 2)
+        .attr('y', (d) => d.v >= 0 ? y(d.v) - 6 : y(d.v) + 14)
+        .attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg)')
+        .style('font-variant-numeric', 'tabular-nums')
+        .text((d) => (cur === 'desmatamento' || cur === 'mvi') ? nfK(d.v) : blFmt(cur, d.v));
+    }
+
+    bars.on('mousemove', (ev, d) => {
+      blTip(box, tip, ev, [
+        blTitle(d.ano + ' · ' + (d.gov === 'Temer (base)' ? 'base (Temer)' : d.gov)),
+        blLine(blFmt(cur, d.v) + (d.parcial ? ' (parcial ou projeção)' : ''), blGovColor(d.gov)),
+      ]);
+      bars.attr('opacity', (o) => o === d ? 1 : 0.55);
+    }).on('mouseleave', () => { tip.hidden = true; bars.attr('opacity', 1); });
+  }
+
+  dash.onData(draw);
+})();
+</script>
+
+<script>
+(function(){
+  let met = 'otimo_bom';
+  const box = document.getElementById('ap-chart');
+  const tip = document.createElement('div'); tip.className = 'bl-tip'; tip.hidden = true;
+  document.getElementById('ap-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-m]'); if (!b) return;
+    met = b.dataset.m;
+    document.querySelectorAll('#ap-tabs button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    draw();
+  });
+
+  function drawLinks(a){
+    const el = document.getElementById('ap-links');
+    el.replaceChildren();
+    if (a.status !== 'ok') return;
+    a.data.forEach((r, i) => {
+      if (i > 0) el.append(document.createTextNode(' · '));
+      const txt = r.presidente + ' ' + r.referencia + ' (' + r.veiculo + ')';
+      if (/^https:\/\//.test(String(r.url || ''))) {
+        const x = document.createElement('a'); x.href = r.url; x.target = '_blank'; x.rel = 'noopener noreferrer'; x.textContent = txt; el.append(x);
+      } else el.append(document.createTextNode(txt));
+    });
+  }
+  function draw(){
+    const a = dash.data('aprovacao');
+    drawLinks(a);
+    if (a.status !== 'ok') {
+      box.replaceChildren();
+      box.classList.toggle('dash-skeleton', a.status === 'loading');
+      if (a.status !== 'loading') blFail(box);
+      return;
+    }
+    box.classList.remove('dash-skeleton');
+    box.replaceChildren(tip); tip.hidden = true;
+    const pres = ['Bolsonaro', 'Lula'];
+    const series = pres.map((p, i) => ({
+      p, color: dash.colors[i],
+      pts: a.data.filter((r) => r.presidente === p && r[met] !== null && r[met] !== '' && r[met] !== undefined)
+        .map((r) => ({ mes: +r.mes, v: +r[met], ref: r.referencia, p, veiculo: r.veiculo })).sort((u, w) => u.mes - w.mes),
+    }));
+    const W = Math.max(box.clientWidth, 280), H = 300, mt = 16, mb = 34;
+    const svg = d3.select(box).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+      .attr('role', 'img').attr('aria-label', 'Avaliação por mês de mandato');
+    const endTxt = series.filter((s) => s.pts.length).map((s) => s.p + ' ' + s.pts[s.pts.length - 1].v + '%');
+    const mr = Math.ceil(blMeasure(svg, endTxt)) + 14;
+    const ml = Math.ceil(blMeasure(svg, ['60%'])) + 10;
+    const x = d3.scaleLinear().domain([0, 48]).range([ml, W - mr]);
+    const y = d3.scaleLinear().domain([0, 60]).range([H - mb, mt]);
+    const g = svg.append('g');
+    [0, 20, 40, 60].forEach((t) => {
+      g.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', y(t)).attr('y2', y(t))
+        .attr('stroke', t === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)');
+      g.append('text').attr('x', ml - 8).attr('y', y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
+        .attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(t + '%');
+    });
+    const narrow = W < 460;
+    [12, 24, 36, 48].forEach((t) => {
+      g.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', mt).attr('y2', H - mb).attr('stroke', 'var(--cds-chart-grid)');
+      g.append('text').attr('x', x(t)).attr('y', H - mb + 18).attr('text-anchor', 'middle').attr('font-size', 12)
+        .attr('fill', 'var(--color-fg-muted)').text(narrow ? (t / 12) + 'º ano' : 'fim do ' + (t / 12) + 'º ano');
+    });
+    const line = d3.line().x((d) => x(d.mes)).y((d) => y(d.v));
+    series.forEach((s) => {
+      svg.append('path').datum(s.pts).attr('d', line).attr('fill', 'none').attr('stroke', s.color)
+        .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    });
+    const ends = series.filter((s) => s.pts.length).map((s) => { const l = s.pts[s.pts.length - 1]; return { s, l, yy: y(l.v) }; });
+    if (ends.length === 2 && Math.abs(ends[0].yy - ends[1].yy) < 16) {
+      const [hiE, loE] = ends[0].yy < ends[1].yy ? [ends[0], ends[1]] : [ends[1], ends[0]];
+      const mid = (hiE.yy + loE.yy) / 2; hiE.yy = mid - 8; loE.yy = mid + 8;
+    }
+    ends.forEach((e) => {
+      svg.append('text').attr('x', x(e.l.mes) + 8).attr('y', e.yy).attr('dy', '0.32em').attr('font-size', 12)
+        .attr('fill', e.s.color).attr('font-weight', 500).text(e.s.p + ' ' + e.l.v + '%');
+    });
+    const all = series.flatMap((s) => s.pts.map((d) => ({ ...d, color: s.color })));
+    const dots = svg.append('g').selectAll('circle').data(all).join('circle')
+      .attr('cx', (d) => x(d.mes)).attr('cy', (d) => y(d.v)).attr('r', 4)
+      .attr('fill', (d) => d.color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
+    svg.append('g').selectAll('circle').data(all).join('circle')
+      .attr('cx', (d) => x(d.mes)).attr('cy', (d) => y(d.v)).attr('r', 12).attr('fill', 'transparent')
+      .on('mousemove', (ev, d) => {
+        blTip(box, tip, ev, [
+          blTitle(d.ref + ' · mês ' + d.mes + ' do mandato'),
+          blLine(d.p + ': ' + d.v + '% ' + (met === 'otimo_bom' ? 'ótimo ou bom' : 'ruim ou péssimo'), d.color),
+          blLine('Divulgado por ' + d.veiculo),
+        ]);
+        dots.attr('r', (o) => o === d ? 6 : 4);
+      })
+      .on('mouseleave', () => { tip.hidden = true; dots.attr('r', 4); });
+  }
+  dash.onData(draw);
+})();
+</script>
+
+<script>
+dash.calc('fontes_links', {
+  inputs: ['comparativo'],
+  title: 'Nomes das fontes',
+  description: 'Os nomes das fontes de cada ponto do comparativo, sem os endereços.',
+  fn: (comparativo) => comparativo.map((r) => ({
+    tema: r.tema,
+    fontes: String(r.fontes || '').split(';').map((s) => s.split('|')[0].trim()).filter(Boolean).join(' · '),
+  })),
+});
+
+(function(){
+  let filtro = 'Todos';
+  const corpo = document.getElementById('cmp-corpo');
+  const fbox = document.getElementById('cmp-filtro');
+  fbox.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-f]'); if (!b) return;
+    filtro = b.dataset.f; draw();
+  });
+  const pillColor = (f) => f === 'Lula' ? dash.colors[1] : f === 'Bolsonaro' ? dash.colors[0] : null;
+  function cell(cls, who, text){
+    const td = document.createElement('td'); if (cls) td.className = cls;
+    if (who) td.dataset.label = who;
+    td.append(document.createTextNode(text == null ? '' : String(text)));
+    return td;
+  }
+  function draw(){
+    const c = dash.data('comparativo');
+    if (c.status !== 'ok') {
+      corpo.replaceChildren(); fbox.replaceChildren();
+      if (c.status !== 'loading') {
+        const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 6;
+        td.style.minHeight = '120px'; blFail(td); tr.append(td); corpo.append(tr);
+      }
+      return;
+    }
+    const opts = ['Todos', ...new Set(c.data.map((r) => r.favorece))];
+    fbox.replaceChildren(...opts.map((o) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'bl-tab'; b.dataset.f = o;
+      b.textContent = o; b.setAttribute('aria-pressed', String(o === filtro)); return b;
+    }));
+    const links = dash.data('fontes_links');
+    corpo.replaceChildren(...c.data.filter((r) => filtro === 'Todos' || r.favorece === filtro).map((r) => {
+      const tr = document.createElement('tr');
+      const fav = document.createElement('td');
+      fav.dataset.label = 'Números favorecem';
+      const pill = document.createElement('span'); pill.className = 'bl-pill'; pill.textContent = r.favorece;
+      const pc = pillColor(r.favorece);
+      if (pc) { pill.style.borderColor = pc; pill.style.color = pc; }
+      fav.append(pill);
+      const fontes = document.createElement('td');
+      fontes.dataset.label = 'Fontes';
+      if (links.status === 'ok') {
+        String(r.fontes || '').split(';').map((s) => s.trim()).filter(Boolean).forEach((s, i) => {
+          const [nome, url] = s.split('|').map((x) => (x || '').trim());
+          if (i > 0) fontes.append(document.createTextNode(' · '));
+          if (url && /^https:\/\//.test(url)) {
+            const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = nome;
+            fontes.append(a);
+          } else fontes.append(document.createTextNode(nome));
+        });
+      }
+      tr.append(
+        cell('tema', null, r.tema),
+        cell(null, 'Bolsonaro (2019–2022)', r.bolsonaro),
+        cell(null, 'Lula (2023–2026)', r.lula),
+        fav,
+        cell('res', 'Resumo', r.resumo),
+        fontes,
+      );
+      return tr;
+    }));
+  }
+  dash.onData(draw);
+})();
+</script>
+
+<script>
+dash.calc('crime_medias', {
+  inputs: ['criminalidade'],
+  title: 'Média anual por governo (criminalidade)',
+  description: 'Média simples das vítimas por ano em cada governo, só nos anos com dado publicado.',
+  fn: (criminalidade) => ['Bolsonaro', 'Lula'].map((g) => {
+    const anos = criminalidade.filter((r) => r.governo === g);
+    const out = { governo: g };
+    for (const k of ['mvi', 'homicidios', 'latrocinios', 'lesao_morte', 'intervencao_policial', 'policiais_mortos', 'feminicidios']) {
+      const v = anos.map((r) => r[k]).filter((x) => x !== null && x !== '' && x !== undefined).map(Number);
+      out[k] = v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
+    }
+    return out;
+  }),
+});
+
+(function(){
+  const grid = document.getElementById('crime-grid');
+  const nf = new Intl.NumberFormat('pt-BR');
+  function links(c){
+    const el = document.getElementById('crime-links');
+    el.replaceChildren();
+    if (c.status !== 'ok') return;
+    const seen = new Map();
+    c.data.forEach((r) => { if (!seen.has(r.fonte)) seen.set(r.fonte, r.url); });
+    [...seen.entries()].forEach(([nome, url], i) => {
+      if (i > 0) el.append(document.createTextNode(' · '));
+      if (/^https:\/\//.test(String(url || ''))) {
+        const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = nome; el.append(a);
+      } else el.append(document.createTextNode(nome));
+    });
+  }
+  function mini(card, meta, rows, avgs){
+    const box = card.querySelector('.chart');
+    const tip = document.createElement('div'); tip.className = 'bl-tip'; tip.hidden = true;
+    box.replaceChildren(tip);
+    const k = meta.id;
+    const pts = rows.map((r) => ({ ano: String(r.ano), gov: r.governo, v: (r[k] === null || r[k] === undefined || r[k] === '') ? null : +r[k], fonte: r.fonte }));
+    const W = Math.max(box.clientWidth, 220), H = 150, mt = 18, mb = 22, ml = 4, mr = 4;
+    const svg = d3.select(box).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', meta.nome);
+    const vals = pts.filter((d) => d.v !== null).map((d) => d.v);
+    const hi = d3.max(vals) || 1;
+    const x = d3.scaleBand().domain(pts.map((d) => d.ano)).range([ml, W - mr]).padding(0.28);
+    const y = d3.scaleLinear().domain([0, hi * 1.12]).range([H - mb, mt]);
+    svg.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('text').data(pts).join('text').attr('x', (d) => x(d.ano) + x.bandwidth() / 2).attr('y', H - 6)
+      .attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text((d) => d.ano.slice(2) === d.ano ? d.ano : "'" + d.ano.slice(2));
+    const real = pts.filter((d) => d.v !== null);
+    const bw = Math.min(x.bandwidth(), 28), off = (x.bandwidth() - bw) / 2;
+    const bars = svg.append('g').selectAll('rect').data(real).join('rect')
+      .attr('x', (d) => x(d.ano) + off).attr('width', bw).attr('y', (d) => y(d.v)).attr('height', (d) => Math.max(1, y(0) - y(d.v))).attr('rx', 3)
+      .attr('fill', (d) => blGovColor(d.gov));
+    svg.append('g').selectAll('text').data(pts.filter((d) => d.v === null)).join('text').attr('x', (d) => x(d.ano) + x.bandwidth() / 2).attr('y', y(0) - 6)
+      .attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text('s/d');
+    const last = real.at(-1), first = real[0];
+    if (last) {
+      svg.append('text').attr('x', x(last.ano) + x.bandwidth() / 2).attr('y', y(last.v) - 5).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 600).attr('fill', 'var(--color-fg)').text(nf.format(last.v));
+    }
+    if (first && first !== last && x(last.ano) - x(first.ano) > 60) {
+      svg.append('text').attr('x', x(first.ano) + x.bandwidth() / 2).attr('y', y(first.v) - 5).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(nf.format(first.v));
+    }
+    bars.on('mousemove', (ev, d) => {
+      blTip(box, tip, ev, [blTitle(d.ano + ' · ' + d.gov), blLine(nf.format(d.v) + ' vítimas', blGovColor(d.gov)), blLine(d.fonte)]);
+      bars.attr('opacity', (o) => o === d ? 1 : 0.55);
+    }).on('mouseleave', () => { tip.hidden = true; bars.attr('opacity', 1); });
+    // médias
+    const mb2 = card.querySelectorAll('.m [data-source="crime_medias"]');
+    mb2.forEach((el) => {
+      const g = el.dataset.gov;
+      const r = avgs && avgs.find((a) => a.governo === g);
+      el.textContent = r && r[k] !== null && r[k] !== undefined ? nf.format(r[k]) : '—';
+    });
+  }
+  function draw(){
+    document.getElementById('cr-lg-b').style.background = dash.colors[0];
+    document.getElementById('cr-lg-l').style.background = dash.colors[1];
+    const c = dash.data('criminalidade'), m = dash.data('crime_meta'), a = dash.data('crime_medias');
+    links(c);
+    if (c.status !== 'ok' || m.status !== 'ok') {
+      grid.replaceChildren();
+      const loading = c.status === 'loading' || m.status === 'loading';
+      grid.classList.toggle('dash-skeleton', loading);
+      grid.style.minHeight = '200px';
+      if (!loading) blFail(grid);
+      return;
+    }
+    grid.classList.remove('dash-skeleton'); grid.style.minHeight = '';
+    const have = [...grid.children].map((e) => e.dataset.id).join();
+    if (have !== m.data.map((r) => r.id).join()) {
+      grid.replaceChildren(...m.data.map((meta) => {
+        const card = document.createElement('div'); card.className = 'bl-mini'; card.dataset.id = meta.id; card.id = 'crime-' + meta.id;
+        const h = document.createElement('h3'); h.textContent = meta.nome;
+        const mm = document.createElement('div'); mm.className = 'm';
+        ['Bolsonaro', 'Lula'].forEach((g, i) => {
+          const sp = document.createElement('span');
+          const sw = document.createElement('i'); sw.className = 'bl-sw'; sw.style.background = dash.colors[i];
+          const lab = document.createTextNode('Média/ano ' + g + ': ');
+          const v = document.createElement('b'); v.setAttribute('data-source', 'crime_medias'); v.setAttribute('data-field', meta.id); v.setAttribute('data-where', 'governo=' + g); v.dataset.gov = g; v.textContent = '—';
+          sp.append(sw, lab, v); mm.append(sp);
+        });
+        const ch = document.createElement('div'); ch.className = 'chart';
+        const n = document.createElement('p'); n.className = 'n'; n.textContent = meta.nota;
+        card.append(h, mm, ch, n);
+        return card;
+      }));
+    }
+    const avgs = a.status === 'ok' ? a.data : null;
+    m.data.forEach((meta) => {
+      const card = grid.querySelector('[data-id="' + meta.id + '"]');
+      if (card) mini(card, meta, c.data, avgs);
+    });
+  }
+  dash.onData(draw);
+})();
+</script>
+
+<section class="rp" id="corrupcao">
+  <h2 class="rp-t">Corrupção nos governos Bolsonaro e Lula</h2>
+  <p class="lead">Nenhum presidente foi condenado por corrupção nos mandatos analisados. A única condenação de Bolsonaro é por tentativa de golpe de Estado, crime contra a democracia e não de corrupção. Nos dois governos, ministros caíram ou foram investigados por desvios, e os dois maiores esquemas (INSS e emendas) atravessaram as duas gestões.</p>
+  <div class="warn"><p><b>Critério.</b> Só entram casos com investigação formal de PF, PGR, MPF, CGU, TCU, CPI/CPMI ou STF. Estágios: investigação (suspeita) → indiciamento (polícia ou CPI vê indícios) → denúncia (acusação formal do MP) → réu (processo aberto) → condenação. Quem não foi condenado é presumido inocente, e as defesas negam irregularidades.</p></div>
+  <div class="grid2">
+    <div class="card"><h3>Governo Bolsonaro (2019–2022)</h3><div class="case"><p><b>Joias sauditas.</b> Em julho de 2024 a PF indiciou Bolsonaro e outras 11 pessoas por peculato, associação criminosa e lavagem de dinheiro, pela suspeita de venda no exterior de presentes recebidos no cargo. Em março de 2026 a PGR pediu o arquivamento: a lei não define se esses presentes são da União ou do presidente. O STF ainda não decidiu; as joias foram enviadas à Receita para um processo administrativo.</p><p class="src"><a href="https://www.correiobraziliense.com.br/politica/2026/03/7368723-pgr-pede-arquivamento-da-investigacao-sobre-joias-de-bolsonaro.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a> · <a href="https://www.correiobraziliense.com.br/politica/2026/07/7454586-moraes-autoriza-envio-de-joias-sauditas-de-bolsonaro-a-receita-federal.html" target="_blank" rel="noopener noreferrer">Correio Braziliense, jul/2026</a></p></div><div class="case"><p><b>Cartão de vacina.</b> A PF indiciou Bolsonaro em março de 2024 por inserção de dados falsos de vacinação. Em março de 2025 o STF arquivou o caso contra o ex-presidente, a pedido da PGR. É crime de falsidade, não de corrupção, mas envolveu servidores públicos.</p><p class="src"><a href="https://noticias.stf.jus.br/postsnoticias/stf-arquiva-investigacao-contra-ex-presidente-da-republica-por-fraude-em-cartao-de-vacina/" target="_blank" rel="noopener noreferrer">STF</a></p></div><div class="case"><p><b>Pastores no MEC.</b> Dois pastores sem cargo intermediariam verbas do FNDE para prefeituras em troca de vantagens. O ministro Milton Ribeiro saiu em março de 2022 e foi preso pela PF em junho. Em agosto de 2024 o MPF pediu a retomada do inquérito, parado havia mais de dois anos; não há denúncia registrada.</p><p class="src"><a href="https://www.poder360.com.br/justica/pf-prende-ex-ministro-milton-ribeiro-em-santos/" target="_blank" rel="noopener noreferrer">Poder360</a> · <a href="https://www.correiobraziliense.com.br/politica/2024/08/6925062-mpf-quer-retomada-de-investigacao-contra-bolsonaro-e-milton-ribeiro.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a></p></div><div class="case"><p><b>Covaxin.</b> A CPI da Pandemia apontou irregularidades no contrato da vacina indiana. O inquérito contra Bolsonaro por prevaricação foi arquivado em abril de 2022, a pedido da PGR.</p><p class="src"><a href="https://www.poder360.com.br/justica/rosa-weber-arquiva-inquerito-contra-bolsonaro-no-caso-covaxin/" target="_blank" rel="noopener noreferrer">Poder360</a></p></div><div class="case"><p><b>Madeira ilegal.</b> O ex-ministro do Meio Ambiente Ricardo Salles virou réu na Justiça Federal do Pará em agosto de 2023, acusado de facilitar o contrabando de madeira com uma norma de 2020. Mais 21 pessoas respondem ao processo.</p><p class="src"><a href="https://www.correiobraziliense.com.br/politica/2023/08/5120756-salles-vira-reu-em-acao-de-exportacao-ilegal-de-madeira.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a></p></div><div class="case"><p><b>Orçamento secreto.</b> As emendas de relator, distribuídas sem identificar o parlamentar autor, cresceram no período. Em dezembro de 2022 o STF as declarou inconstitucionais, por 6 votos a 5.</p><p class="src"><a href="https://noticias.stf.jus.br/postsnoticias/stf-julga-orcamento-secreto-inconstitucional/" target="_blank" rel="noopener noreferrer">STF</a></p></div></div>
+    <div class="card"><h3>Governo Lula (2023–2026)</h3><div class="case"><p><b>Fraude no INSS.</b> A operação da PF e da CGU, em abril de 2025, levou à saída do presidente do INSS e, em maio, do ministro da Previdência, Carlos Lupi (PDT). O esquema começou antes do governo, mas a cobrança recai sobre a demora em interrompê-lo a partir de 2023.</p><p class="src"><a href="https://www.correiobraziliense.com.br/mundo/2025/04/7121477-o-que-se-sabe-sobre-fraude-no-inss-que-levou-lula-a-demitir-presidente-do-orgao.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a> · <a href="https://www.congressoemfoco.com.br/noticia/108221/crise-no-inss-entenda-escandalo-que-derrubou-ministro-da-previdencia" target="_blank" rel="noopener noreferrer">Congresso em Foco</a></p></div><div class="case"><p><b>Fábio Luís Lula da Silva (Lulinha).</b> Em julho de 2026 o ministro André Mendonça, do STF, autorizou a PF a investigá-lo por tráfico de influência e corrupção, para apurar se favoreceu o lobista conhecido como Careca do INSS, apontado como operador da fraude e preso desde setembro de 2025. Não há indiciamento. A defesa diz que ele não recebeu dinheiro do lobista.</p><p class="src"><a href="https://www.correiobraziliense.com.br/mundo/2026/07/7471272-lulinha-investigado-por-trafico-de-influencia-e-corrupcao-do-inss-a-lava-jato-o-que-pesa-contra-o-filho-de-lula.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a></p></div><div class="case"><p><b>Juscelino Filho (Comunicações).</b> Em abril de 2025 a PGR o denunciou por corrupção no desvio de R$ 7,5 milhões em emendas de 2022, de quando era deputado, para obras da Codevasf em cidade governada pela irmã. Lula pediu sua saída e ele deixou o ministério; o STF ainda não decidiu se ele vira réu. Ele nega os crimes.</p><p class="src"><a href="https://www.poder360.com.br/poder-justica/pgr-denuncia-juscelino-filho-por-corrupcao-em-desvio-de-emendas/" target="_blank" rel="noopener noreferrer">Poder360</a> · <a href="https://www.congressoemfoco.com.br/noticia/107586/demissao-de-juscelino-filho-e-publicada-no-diario-oficial" target="_blank" rel="noopener noreferrer">Congresso em Foco</a></p></div><div class="case"><p><b>Banco Master e Alexandre Padilha.</b> Em outubro de 2026 a revista Veja publicou trechos de uma proposta de delação do banqueiro Daniel Vorcaro que cita propina para o ministro Padilha e repasses ao Instituto Lula. A PGR rejeitou a proposta por não cumprir requisitos legais, e a PF diz que Vorcaro não prestou depoimento com esse conteúdo. Padilha chama o relato de farsa; não há investigação aberta sobre ele.</p><p class="src"><a href="https://www.poder360.com.br/poder-justica/padilha-diz-que-relatos-de-vorcaro-sobre-propinas-sao-farsa/" target="_blank" rel="noopener noreferrer">Poder360</a></p></div></div>
+  </div>
+  <div class="card"><h3>Casos que atravessam os dois governos</h3><div class="case"><p><b>Descontos no INSS.</b> Entidades associativas descontaram cerca de R$ 6,3 bilhões de aposentados entre 2019 e 2024, sem autorização; é o total descontado, não o valor comprovado como desviado. Até dezembro de 2025, cerca de 4,1 milhões de devoluções (R$ 2,83 bilhões) haviam sido sacadas. A CPMI terminou em março de 2026 sem relatório aprovado (19 a 12); o texto pedia o indiciamento de 216 pessoas, incluindo os ex-ministros da Previdência José Carlos Oliveira (Bolsonaro) e Carlos Lupi (Lula). As investigações seguem na PF e no STF.</p><p class="src"><a href="https://www.correiobraziliense.com.br/aqui/2026/09/18/entenda-a-operacao-sem-desconto-e-quem-sao-os-alvos-da-pf/" target="_blank" rel="noopener noreferrer">Correio Braziliense</a> · <a href="https://www12.senado.leg.br/noticias/audios/2026/03/relatorio-da-cpmi-do-inss-e-rejeitado-por-19-votos-a-12" target="_blank" rel="noopener noreferrer">Agência Senado</a> · <a href="https://www.poder360.com.br/poder-congresso/cpi-do-inss-quer-indiciamento-de-2-ex-ministros-oliveira-e-lupi/" target="_blank" rel="noopener noreferrer">Poder360</a></p></div><div class="case"><p><b>Emendas parlamentares.</b> As emendas passaram de cerca de R$ 10 bilhões há uma década para R$ 40 bilhões em 2026. O STF mandou a PF investigar desvios; os inquéritos, relatados por Flávio Dino, atingem políticos do PL (Valdemar Costa Neto teve R$ 119,2 milhões bloqueados), do Republicanos e do PT. Todos negam irregularidades.</p><p class="src"><a href="https://www.correiobraziliense.com.br/mundo/2026/09/7497136-o-arsenal-nas-maos-de-dino-como-inqueritos-sobre-emendas-parlamentares-atingem-politicos-e-chegam-a-dark-horse.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a> · <a href="https://noticias.stf.jus.br/postsnoticias/decisoes-do-stf-reforcam-transparencia-na-destinacao-de-emendas-parlamentares/" target="_blank" rel="noopener noreferrer">STF</a></p></div><div class="case"><p><b>Banco Master.</b> Um inquérito relatado por André Mendonça apura um repasse de cerca de R$ 65 milhões do banco ao filme <i>Dark Horse</i>, sobre Bolsonaro, feito após pedido de Flávio Bolsonaro. Do lado do governo, há o relato não comprovado sobre Padilha descrito acima.</p><p class="src"><a href="https://www.correiobraziliense.com.br/mundo/2026/09/7497136-o-arsenal-nas-maos-de-dino-como-inqueritos-sobre-emendas-parlamentares-atingem-politicos-e-chegam-a-dark-horse.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a></p></div></div>
+  <div class="card"><h3>Comparativo dos casos</h3><p>Nenhum caso chegou a condenação; o mais avançado é o de Ricardo Salles, réu desde 2023.</p><div class="tw"><table><thead><tr><th>Caso</th><th>Governo</th><th>Cargo mais alto envolvido</th><th>Quem investiga</th><th>Estágio (out/2026)</th></tr></thead><tbody><tr><td>Madeira ilegal</td><td>Bolsonaro</td><td>Ministro do Meio Ambiente</td><td>MPF, Justiça Federal do Pará</td><td>Réu desde 2023</td></tr><tr><td>Juscelino Filho e emendas da Codevasf</td><td>Lula</td><td>Ministro das Comunicações</td><td>PF, PGR, STF</td><td>Denunciado em 2025; STF não decidiu se vira réu</td></tr><tr><td>Joias sauditas</td><td>Bolsonaro</td><td>Presidente</td><td>PF, PGR, STF</td><td>Indiciado em 2024; PGR pediu arquivamento em 2026</td></tr><tr><td>Pastores no MEC</td><td>Bolsonaro</td><td>Ministro da Educação</td><td>PF, MPF</td><td>Ministro preso em 2022; inquérito sem denúncia</td></tr><tr><td>Fraude no INSS</td><td>Bolsonaro e Lula</td><td>Ministros da Previdência dos dois governos</td><td>PF, CGU, STF, CPMI</td><td>Investigação; relatório da CPMI rejeitado em 2026</td></tr><tr><td>Lulinha e o lobista do INSS</td><td>Lula</td><td>Filho do presidente</td><td>PF, STF</td><td>Investigação aberta em 2026</td></tr><tr><td>Emendas parlamentares</td><td>Bolsonaro e Lula</td><td>Parlamentares de PL, Republicanos e PT</td><td>PF, STF, TCU</td><td>Investigação; bens bloqueados</td></tr><tr><td>Banco Master</td><td>Bolsonaro e Lula</td><td>Ministro da Saúde (relato) e senador Flávio Bolsonaro (patrocínio de filme)</td><td>PF, PGR, STF</td><td>Delação rejeitada; inquéritos sobre o banco seguem</td></tr><tr><td>Covaxin</td><td>Bolsonaro</td><td>Presidente</td><td>PF, PGR, STF</td><td>Arquivado em 2022</td></tr><tr><td>Cartão de vacina</td><td>Bolsonaro</td><td>Presidente</td><td>PF, PGR, STF</td><td>Arquivado em 2025</td></tr><tr><td>Orçamento secreto</td><td>Bolsonaro</td><td>Congresso e Executivo</td><td>STF</td><td>Declarado inconstitucional em 2022</td></tr></tbody></table></div></div>
+  <div class="card"><h3>Índice de Percepção da Corrupção</h3><p>Na percepção de especialistas e empresários, o Brasil ficou estagnado nos dois governos: 38 pontos no fim do mandato de Bolsonaro e 35 em 2025, abaixo da média global de 42. O índice mede percepção, não casos comprovados, e cada edição reflete dados dos dois anos anteriores.</p><div id="ipc-chart"></div><p class="src"><a href="https://www.poder360.com.br/brasil/brasil-esta-estagnado-em-indice-de-corrupcao-global-diz-ong/" target="_blank" rel="noopener noreferrer">Poder360, IPC 2022</a> · <a href="https://transparenciainternacional.org.br/posts/brasil-repete-pior-posicao-e-segunda-pior-nota-no-indice-de-percepcao-da-corrupcao/" target="_blank" rel="noopener noreferrer">Transparência Internacional, IPC 2025</a></p></div>
+</section>
+
+<section class="rp" id="candidatos">
+  <h2 class="rp-t">Os candidatos de 2026: Lula x Flávio Bolsonaro</h2>
+  <p class="lead">Nenhum dos dois tem condenação válida por corrupção. Lula foi condenado na Lava Jato, mas as condenações foram anuladas em 2021 por questões processuais, sem julgamento do mérito. Flávio é investigado no STF desde julho de 2026 no caso Banco Master, e a denúncia das rachadinhas foi arquivada após a anulação das provas.</p>
+  <div class="card"><div class="tw"><table><thead><tr><th>Candidato</th><th>Caso</th><th>Período dos fatos</th><th>Acusação</th><th>Estágio (out/2026)</th></tr></thead><tbody><tr><td>Flávio Bolsonaro</td><td>Banco Master e filme <i>Dark Horse</i></td><td>2024–2025, como senador</td><td>Lavagem de dinheiro, corrupção e evasão de divisas</td><td>Investigado no STF desde jul/2026; sem indiciamento</td></tr><tr><td>Flávio Bolsonaro</td><td>Rachadinhas na Alerj</td><td>Até 2018, como deputado estadual</td><td>Peculato, lavagem e organização criminosa (R$ 6 milhões)</td><td>Denunciado em 2020; provas anuladas pelo STJ em 2021; denúncia arquivada em 2022</td></tr><tr><td>Flávio Bolsonaro</td><td>Empréstimo do BRB para a mansão</td><td>2021</td><td>Ação popular (cível), não penal</td><td>Retomada pelo TJDFT em 2023</td></tr><tr><td>Lula</td><td>Triplex do Guarujá e sítio de Atibaia (Lava Jato)</td><td>2003–2014</td><td>Corrupção e lavagem</td><td>Condenado; anulado pelo STF em 2021; prescrito depois</td></tr><tr><td>Lula</td><td>Outros 9 processos (Zelotes, quadrilhão do PT e outros)</td><td>2003–2016</td><td>Corrupção, organização criminosa, obstrução</td><td>3 absolvições; os demais suspensos, trancados ou arquivados</td></tr></tbody></table></div></div>
+  <div class="card">
+    <div class="case"><p><b>Flávio e o Banco Master.</b> A PF diz que Flávio era interlocutor direto do banqueiro Daniel Vorcaro no financiamento do filme sobre o pai, com reuniões e cobranças de pagamento. O contrato previa US$ 24 milhões, e cerca de metade foi paga. A PGR pediu que se levantem projetos de Flávio no Senado que possam interessar ao banco. Ele diz que foi um patrocínio privado, sem dinheiro público, e que a divulgação tenta prejudicar a campanha.</p><p class="src"><a href="https://www.correiobraziliense.com.br/mundo/2026/09/7498815-6-perguntas-para-entender-inquerito-contra-flavio-bolsonaro-e-o-o-que-falta-ser-esclarecido.html" target="_blank" rel="noopener noreferrer">Correio Braziliense</a> · <a href="https://www.correiobraziliense.com.br/mundo/2026/09/7498876-pgr-pediu-para-apurar-se-flavio-bolsonaro-atuou-no-senado-para-beneficiar-vorcaro.html" target="_blank" rel="noopener noreferrer">Correio Braziliense, PGR</a> · <a href="https://www.poder360.com.br/poder-justica/flavio-e-investigado-no-stf-por-financiamento-do-dark-horse/" target="_blank" rel="noopener noreferrer">Poder360</a></p></div>
+    <div class="case"><p><b>Flávio e as rachadinhas.</b> Em fevereiro de 2025 o ministro Gilmar Mendes negou reabrir o caso, mas lembrou que a anulação não impede o MP do Rio de apresentar nova denúncia.</p><p class="src"><a href="https://www.poder360.com.br/poder-justica/gilmar-nega-pedido-para-reabrir-acao-contra-flavio-por-rachadinha/" target="_blank" rel="noopener noreferrer">Poder360</a> · <a href="https://www.correiobraziliense.com.br/politica/2023/11/6661850-tjdft-rejeita-sentenca-que-livrou-flavio-bolsonaro-no-caso-da-mansao-de-rs-6-mi.html" target="_blank" rel="noopener noreferrer">Correio Braziliense, mansão</a></p></div>
+    <div class="case"><p><b>Lula e a Lava Jato.</b> O STF anulou as condenações por incompetência da Justiça Federal de Curitiba e depois confirmou a suspeição do ex-juiz Sergio Moro. Reabertos em Brasília, os casos do triplex e do sítio prescreveram. Como presidente, Lula não é investigado pessoalmente; o filho é, no caso do INSS, e o Instituto Lula é citado na delação de Vorcaro rejeitada pela PGR.</p><p class="src"><a href="https://noticias.stf.jus.br/postsnoticias/stf-confirma-anulacao-de-condenacoes-do-ex-presidente-lula-na-lava-jato/" target="_blank" rel="noopener noreferrer">STF</a> · <a href="https://www.poder360.com.br/justica/lula-se-livra-de-processos-mas-teve-so-3-absolvicoes/" target="_blank" rel="noopener noreferrer">Poder360</a> · <a href="https://www.correiobraziliense.com.br/politica/2022/01/4980935-juiza-do-df-arquiva-caso-do-triplex-do-guaruja-envolvendo-lula.html" target="_blank" rel="noopener noreferrer">Correio Braziliense, triplex</a></p></div>
+  </div>
+</section>
+
+<section class="rp" id="prioridades">
+  <h2 class="rp-t">Prioridades do eleitor: Lula x Flávio Bolsonaro</h2>
+  <div class="warn"><p><b>Como ler.</b> Este é um mapa de prioridades, não uma recomendação de voto: mostra quais prioridades encontram mais respaldo no histórico de cada lado. A escolha depende de valores e de quanto peso cada pessoa dá a cada tema.</p>
+  <ul><li><b>Flávio não é Jair Bolsonaro.</b> O governo do pai serve de referência porque ele concorre pelo mesmo grupo político, mas é uma aproximação: o programa e a equipe dele podem ser diferentes.</li><li><b>Os dados olham para trás.</b> Mostram o que cada governo entregou, não garantem o que virá, e vários números dependem de contexto, como pandemia, juros e herança fiscal.</li></ul></div>
+  <div class="grid2">
+    <div class="card"><span class="tag" style="color:var(--serie-l)">Lula (2023–2026)</span><h3>Prioridades com mais respaldo no histórico</h3>
+      <ul><li><b>Emprego e renda no curto prazo:</b> desemprego na mínima da série, 5,6% em 2025, e renda recorde.</li><li><b>Combate à pobreza e programas sociais:</b> extrema pobreza de 3,5% em 2024, menor nível da série, e saída do Mapa da Fome.</li><li><b>Meio ambiente:</b> desmatamento na Amazônia cerca de 50% menor que em 2022.</li><li><b>Imposto de renda menor para quem ganha até R$ 5 mil,</b> compensado por cobrança maior sobre altas rendas.</li><li><b>Instituições:</b> quem dá peso alto à condenação de Bolsonaro por tentativa de golpe tende a considerar isso decisivo.</li></ul>
+      <h3>Pontos de atenção</h3>
+      <ul><li>Dívida pública em alta, de 71,7% para 78,7% do PIB.</li><li>Juros de 15%, os mais altos desde 2006.</li><li>Fraude do INSS só interrompida em 2025.</li><li>Um ministro denunciado por corrupção.</li><li>O filho do presidente investigado.</li></ul></div>
+    <div class="card"><span class="tag" style="color:var(--serie-b)">Governo Bolsonaro (2019–2022)</span><h3>Prioridades com mais respaldo no histórico</h3>
+      <ul><li><b>Controle da dívida e Estado menor:</b> dívida de 75,3% para 71,7% do PIB, privatização da Eletrobras e autonomia do Banco Central.</li><li><b>Agenda de reformas pró-mercado:</b> reforma da Previdência e marcos do saneamento e das ferrovias.</li><li><b>Acesso a armas:</b> registros de CACs cresceram 474%. Os homicídios caíram no período, mas o FBSP não atribui a queda às armas.</li><li><b>Pauta de costumes conservadora e crítica ao PT,</b> incluindo a avaliação de que a Lava Jato foi anulada por motivos processuais, sem absolvição no mérito.</li><li><b>Avaliação de governo:</b> Bolsonaro terminou o mandato com 39% de ótimo/bom, acima dos 34% de Lula hoje.</li></ul>
+      <h3>Pontos de atenção</h3>
+      <ul><li>Inflação de 10% em 2021.</li><li>Desmatamento nos maiores níveis desde 2009.</li><li>Condução da pandemia, com a CPI pedindo o indiciamento do presidente.</li><li>A condenação por tentativa de golpe.</li><li>O próprio Flávio é investigado no STF no caso Banco Master.</li></ul></div>
+  </div>
+  <div class="card"><h3>O que pesa igual para os dois lados</h3>
+    <ul><li><b>Corrupção:</b> nenhum dos candidatos tem condenação válida. Os maiores esquemas, INSS e emendas, atravessaram os dois governos; não há um "lado limpo" nos dados.</li><li><b>Crescimento:</b> ficou parecido quando se desconta o ano da pandemia.</li></ul>
+    <h3>Como usar este mapa</h3>
+    <ol><li>Escolha os três temas que mais importam para você.</li><li>Veja o que os números de cada período mostram nesses temas, nas seções acima.</li><li>Leia o plano de governo que cada candidato registrou no TSE.</li></ol></div>
+</section>
+
+<script>
+(function(){
+  const rows = [{ano:'2018',nota:35,gov:'Temer'},{ano:'2019',nota:35,gov:'Bolsonaro'},{ano:'2020',nota:38,gov:'Bolsonaro'},{ano:'2021',nota:38,gov:'Bolsonaro'},{ano:'2022',nota:38,gov:'Bolsonaro'},{ano:'2023',nota:36,gov:'Lula'},{ano:'2024',nota:34,gov:'Lula'},{ano:'2025',nota:35,gov:'Lula'}];
+  const box = document.getElementById('ipc-chart');
+  function draw(){
+    box.replaceChildren();
+    const W = Math.max(box.clientWidth, 300), H = 260, mt = 34, mb = 30, ml = 24, mr = 24;
+    const svg = d3.select(box).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).attr('role','img').attr('aria-label','Nota do Brasil no Índice de Percepção da Corrupção, 2018 a 2025');
+    const x = d3.scalePoint().domain(rows.map(r => r.ano)).range([ml + 20, W - mr - 20]);
+    const step = x.step();
+    const y = d3.scaleLinear().domain([30, 42]).range([H - mb, mt]);
+    [['Bolsonaro', 0.14], ['Lula', 0.07]].forEach(([g, op]) => {
+      const rs = rows.filter(r => r.gov === g);
+      const x0 = x(rs[0].ano) - step / 2, x1 = x(rs.at(-1).ano) + step / 2;
+      svg.append('rect').attr('x', x0).attr('y', mt - 18).attr('width', x1 - x0).attr('height', H - mb - mt + 18).attr('fill', 'var(--cds-chart-muted)').attr('fill-opacity', op);
+      svg.append('text').attr('x', x0 + 6).attr('y', mt - 4).attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text('Governo ' + g);
+    });
+    svg.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', H - mb).attr('y2', H - mb).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('path').datum(rows).attr('d', d3.line().x(r => x(r.ano)).y(r => y(r.nota))).attr('fill','none').attr('stroke','var(--serie-b)').attr('stroke-width',2.5).attr('stroke-linejoin','round').attr('stroke-linecap','round');
+    const low = d3.min(rows, r => r.nota);
+    rows.forEach(r => {
+      svg.append('circle').attr('cx', x(r.ano)).attr('cy', y(r.nota)).attr('r', r.nota === low ? 6 : 4).attr('fill','var(--serie-b)').append('title').text(`${r.ano}: nota ${r.nota}`);
+      svg.append('text').attr('x', x(r.ano)).attr('y', y(r.nota) - 11).attr('text-anchor','middle').attr('font-size', r.nota === low ? 14 : 12).attr('font-weight', r.nota === low ? 600 : 400).attr('fill','var(--color-fg)').text(r.nota);
+      svg.append('text').attr('x', x(r.ano)).attr('y', H - 10).attr('text-anchor','middle').attr('font-size', 12).attr('fill','var(--color-fg-muted)').text(r.ano);
+    });
+  }
+  draw();
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(draw, 150); });
+})();
+</script>
+
+<footer class="site-foot">Página estática gerada a partir do painel "Bolsonaro x Lula em dados". Dados atualizados até 17/10/2026; fontes listadas em cada seção.</footer>
+</div>
+</body>
+</html>
